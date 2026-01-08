@@ -3,187 +3,194 @@
 {% block content %}
 
 
-    <!-- Page Title -->
-    <div class="page-title">
-      <div class="heading">
-        <div class="container">
-          <div class="row d-flex justify-content-center text-center">
-            <div class="col-lg-8">
-              <h1 class="heading-title">Bizning Xizmatlar</h1>
-              <p class="mb-0">
-                Professional stomatologiya xizmatlari - zamonaviy texnologiyalar va tajribali shifokorlar bilan
-              </p>
+<!-- Page Title -->
+<div class="page-title">
+  <div class="heading">
+    <div class="container">
+      <div class="row d-flex justify-content-center text-center">
+        <div class="col-lg-8">
+          <h1 class="heading-title">Bizning Xizmatlar</h1>
+          <p class="mb-0">
+            Professional stomatologiya xizmatlari - zamonaviy texnologiyalar va tajribali shifokorlar bilan
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="breadcrumbs">
+    <div class="container">
+      <ol>
+        <li><a href="{% url 'index' %}">Bosh sahifa</a></li>
+        <li><a href="{% url 'services' %}">Xizmatlar</a></li>
+        <li class="current">{{ service.name }}</li>
+      </ol>
+    </div>
+  </nav>
+</div><!-- End Page Title -->
+
+<!-- Service Details 2 Section -->
+<section id="service-details-2" class="service-details-2 section">
+
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+    <div class="row gy-5">
+
+      <div class="col-lg-6" data-aos="zoom-in" data-aos-delay="200">
+        <div class="service-image">
+          {% if service.image %}
+          <img src="{{ service.image.url }}" alt="{{ service.name }}" class="img-fluid">
+          {% else %}
+          <img src="{% static 'assets/img/health/default-service.webp' %}" alt="{{ service.name }}" class="img-fluid">
+          {% endif %}
+          <div class="service-tag">
+            <span>{{ service.department.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6" data-aos="fade-left" data-aos-delay="300">
+        <div class="service-content">
+          <h2>{{ service.name }}</h2>
+          <p class="service-tagline">{{ service.description }}</p>
+
+          {% if service.full_description %}
+          {{ service.full_description|linebreaks }}
+          {% else %}
+          <p>{{ service.description }}</p>
+          {% endif %}
+
+          <div class="service-features">
+            <h4>Xizmat xususiyatlari:</h4>
+            <ul>
+              {% if service.price_from %}
+              <li><i class="bi bi-check-circle"></i> Narx: {{ service.get_price_display }}</li>
+              {% endif %}
+              {% if service.duration %}
+              <li><i class="bi bi-check-circle"></i> Davomiyligi: {{ service.get_duration_display }}</li>
+              {% endif %}
+              {% for feature in service.features.all %}
+              <li><i class="{{ feature.icon }}"></i> {{ feature.text }}</li>
+              {% empty %}
+              <li><i class="bi bi-check-circle"></i> Professional shifokorlar</li>
+              <li><i class="bi bi-check-circle"></i> Zamonaviy uskunalar</li>
+              <li><i class="bi bi-check-circle"></i> Kafolat beriladi</li>
+              <li><i class="bi bi-check-circle"></i> Bepul konsultatsiya</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <div class="service-actions">
+            <a href="{% url 'appointment' %}" class="btn-primary">Qabulga yozilish</a>
+            <a href="{% url 'contact' %}" class="btn-secondary">Savollaringiz bormi</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    {% if related_services %}
+    <div class="row mt-5">
+      <div class="col-12">
+        <h3 class="mb-4">O'xshash xizmatlar</h3>
+      </div>
+
+      {% for related in related_services %}
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+        <div class="service-card">
+          <div class="card-icon">
+            <i class="{{ related.icon }}"></i>
+          </div>
+          <h4>{{ related.name }}</h4>
+          <p>{{ related.description|truncatewords:15 }}</p>
+          <a href="{{ related.get_absolute_url }}" class="card-link">
+            <span>Batafsil</span>
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Bo'limdagi shifokorlar -->
+    {% if department_doctors %}
+    <div class="row mt-5">
+      <div class="col-12">
+        <h3 class="mb-4">{{ service.department.name }} bo'limi shifokorlari</h3>
+      </div>
+
+      {% for doctor in department_doctors %}
+      <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+        <div class="doctor-card text-center">
+          <div class="doctor-image mb-3">
+            {% if doctor.photo %}
+            <img src="{{ doctor.photo.url }}" alt="{{ doctor.get_full_name }}" class="img-fluid rounded-circle"
+              style="width: 150px; height: 150px; object-fit: cover;">
+            {% else %}
+            <img src="{% static 'assets/img/doctors/default-doctor.jpg' %}" alt="{{ doctor.get_full_name }}"
+              class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+            {% endif %}
+          </div>
+          <h5>{{ doctor.get_full_name }}</h5>
+          <p class="text-muted">{{ doctor.specialization }}</p>
+          <p class="small">{{ doctor.experience_years }} yillik tajriba</p>
+          <a href="{% url 'appointment' %}" class="btn btn-sm btn-outline-primary">Qabulga yozilish</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row mt-5">
+
+      <div class="col-lg-8" data-aos="fade-right" data-aos-delay="100">
+        <div class="booking-section">
+          <h3>Qabulga yozilishga tayyormisiz?</h3>
+          <p>Mutaxassislarimiz sizga Dushanba-Juma kunlari xizmat ko'rsatadi. Shoshilinch holatlar uchun bir kunlik
+            qabullar mavjud.</p>
+
+          <div class="availability-info">
+            <div class="info-item">
+              <i class="bi bi-clock"></i>
+              <div>
+                <strong>Ish vaqti</strong>
+                <span>{{ site_settings.working_hours_weekday }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="bi bi-telephone"></i>
+              <div>
+                <strong>Telefon raqami</strong>
+                <span>{{ site_settings.phone_primary }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <i class="bi bi-geo-alt"></i>
+              <div>
+                <strong>Manzil</strong>
+                <span>{{ site_settings.address }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <nav class="breadcrumbs">
-        <div class="container">
-          <ol>
-            <li><a href="index.html">Bosh sahifa</a></li>
-            <li><a href="{% url 'services' %}">Xizmatlar</a></li>
-            <li class="current">{{ service.name }}</li>
-          </ol>
+
+      <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
+        <div class="appointment-card">
+          <h4>Qabulga yoziling</h4>
+          <p>Tez va oson onlayn yozilish</p>
+          <a href="{% url 'appointment' %}" class="btn-appointment">Qabulga yozilish</a>
+          <div class="contact-alternative">
+            <span>Yoki qo'ng'iroq qiling</span>
+            <a href="tel:{{ site_settings.phone_primary|urlencode }}">{{ site_settings.phone_primary }}</a>
+          </div>
         </div>
-      </nav>
-    </div><!-- End Page Title -->
-
-    <!-- Service Details 2 Section -->
-    <section id="service-details-2" class="service-details-2 section">
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <div class="row gy-5">
-
-          <div class="col-lg-6" data-aos="zoom-in" data-aos-delay="200">
-            <div class="service-image">
-              {% if service.image %}
-              <img src="{{ service.image.url }}" alt="{{ service.name }}" class="img-fluid">
-              {% else %}
-              <img src="{% static 'assets/img/health/default-service.webp' %}" alt="{{ service.name }}" class="img-fluid">
-              {% endif %}
-              <div class="service-tag">
-                <span>{{ service.department.name }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-6" data-aos="fade-left" data-aos-delay="300">
-            <div class="service-content">
-              <h2>{{ service.name }}</h2>
-              <p class="service-tagline">{{ service.description }}</p>
-
-              {% if service.full_description %}
-                {{ service.full_description|linebreaks }}
-              {% else %}
-                <p>{{ service.description }}</p>
-              {% endif %}
-
-              <div class="service-features">
-                <h4>Xizmat xususiyatlari:</h4>
-                <ul>
-                  {% if service.price_from %}
-                  <li><i class="bi bi-check-circle"></i> Narx: {{ service.get_price_display }}</li>
-                  {% endif %}
-                  {% if service.duration %}
-                  <li><i class="bi bi-check-circle"></i> Davomiyligi: {{ service.get_duration_display }}</li>
-                  {% endif %}
-                  <li><i class="bi bi-check-circle"></i> Professional shifokorlar</li>
-                  <li><i class="bi bi-check-circle"></i> Zamonaviy uskunalar</li>
-                  <li><i class="bi bi-check-circle"></i> Kafolat beriladi</li>
-                  <li><i class="bi bi-check-circle"></i> Bepul konsultatsiya</li>
-                </ul>
-              </div>
-
-              <div class="service-actions">
-                <a href="appointment.html" class="btn-primary">Qabulga yozilish</a>
-                <a href="contact.html" class="btn-secondary">Savollaringiz bormi</a>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {% if related_services %}
-        <div class="row mt-5">
-          <div class="col-12">
-            <h3 class="mb-4">O'xshash xizmatlar</h3>
-          </div>
-
-          {% for related in related_services %}
-          <div class="col-lg-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
-            <div class="service-card">
-              <div class="card-icon">
-                <i class="{{ related.icon }}"></i>
-              </div>
-              <h4>{{ related.name }}</h4>
-              <p>{{ related.description|truncatewords:15 }}</p>
-              <a href="{{ related.get_absolute_url }}" class="card-link">
-                <span>Batafsil</span>
-                <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Bo'limdagi shifokorlar -->
-        {% if department_doctors %}
-        <div class="row mt-5">
-          <div class="col-12">
-            <h3 class="mb-4">{{ service.department.name }} bo'limi shifokorlari</h3>
-          </div>
-
-          {% for doctor in department_doctors %}
-          <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
-            <div class="doctor-card text-center">
-              <div class="doctor-image mb-3">
-                {% if doctor.photo %}
-                <img src="{{ doctor.photo.url }}" alt="{{ doctor.get_full_name }}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-                {% else %}
-                <img src="{% static 'assets/img/doctors/default-doctor.jpg' %}" alt="{{ doctor.get_full_name }}" class="img-fluid rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
-                {% endif %}
-              </div>
-              <h5>{{ doctor.get_full_name }}</h5>
-              <p class="text-muted">{{ doctor.specialization }}</p>
-              <p class="small">{{ doctor.experience_years }} yillik tajriba</p>
-              <a href="{% url 'appointment' %}" class="btn btn-sm btn-outline-primary">Qabulga yozilish</a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="row mt-5">
-
-          <div class="col-lg-8" data-aos="fade-right" data-aos-delay="100">
-            <div class="booking-section">
-              <h3>Qabulga yozilishga tayyormisiz?</h3>
-              <p>Mutaxassislarimiz sizga Dushanba-Juma kunlari xizmat ko'rsatadi. Shoshilinch holatlar uchun bir kunlik qabullar mavjud.</p>
-
-              <div class="availability-info">
-                <div class="info-item">
-                  <i class="bi bi-clock"></i>
-                  <div>
-                    <strong>Ish vaqti</strong>
-                    <span>Dush-Juma: 09:00 - 18:00</span>
-                  </div>
-                </div>
-                <div class="info-item">
-                  <i class="bi bi-telephone"></i>
-                  <div>
-                    <strong>Telefon raqami</strong>
-                    <span>+998 90 123 45 67</span>
-                  </div>
-                </div>
-                <div class="info-item">
-                  <i class="bi bi-geo-alt"></i>
-                  <div>
-                    <strong>Manzil</strong>
-                    <span>Toshkent shahar, Chilonzor tumani</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
-            <div class="appointment-card">
-              <h4>Qabulga yoziling</h4>
-              <p>Tez va oson onlayn yozilish</p>
-              <a href="{% url 'appointment' %}" class="btn-appointment">Qabulga yozilish</a>
-              <div class="contact-alternative">
-                <span>Yoki qo'ng'iroq qiling</span>
-                <a href="tel:+998901234567">+998 90 123 45 67</a>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
       </div>
 
-    </section><!-- /Service Details 2 Section -->
+    </div>
+
+  </div>
+
+</section><!-- /Service Details 2 Section -->
 
 {% endblock %}

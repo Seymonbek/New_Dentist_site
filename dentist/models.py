@@ -245,3 +245,96 @@ class ContactMessage(models.Model):
     def __str__(self):
         return f"{self.name} - {self.subject}"
 
+
+class SiteSettings(models.Model):
+    """Sayt uchun global sozlamalar (singleton)"""
+    clinic_name = models.CharField(max_length=200, verbose_name="Klinika nomi", default="MediNest")
+    phone_primary = models.CharField(max_length=20, verbose_name="Asosiy telefon", default="+998 90 123 45 67")
+    phone_emergency = models.CharField(max_length=20, verbose_name="Tez yordam telefoni", default="+998 90 123 45 67")
+    email = models.EmailField(verbose_name="Email", default="info@medinest.uz")
+    address = models.CharField(max_length=300, verbose_name="Manzil", default="Toshkent shahar, Chilonzor tumani")
+    
+    working_hours_weekday = models.CharField(max_length=100, verbose_name="Hafta ish kunlari", default="Dush-Juma: 09:00 - 18:00")
+    working_hours_weekend = models.CharField(max_length=100, verbose_name="Dam olish kunlari", default="Shanba: 09:00 - 14:00")
+    
+    patients_count = models.IntegerField(default=25000, verbose_name="Davolangan bemorlar soni")
+    years_experience = models.IntegerField(default=15, verbose_name="Yillik tajriba")
+    
+    # Social media
+    facebook_url = models.URLField(blank=True, verbose_name="Facebook")
+    instagram_url = models.URLField(blank=True, verbose_name="Instagram")
+    telegram_url = models.URLField(blank=True, verbose_name="Telegram")
+    
+    # About Us sahifasi uchun
+    about_title = models.CharField(max_length=200, verbose_name="Biz haqimizda - Sarlavha", 
+                                   default="1985-yildan beri sog'liqni saqlashda mukammallik")
+    about_intro = models.TextField(verbose_name="Biz haqimizda - Kirish matni",
+                                   default="Biz ajoyib tibbiy yordam tushunishdan boshlanadi deb ishonadi. Bizning professional jamoamiz zamonaviy texnologiyalarni g'amxo'rlik bilan birlashtiradi.")
+    about_trusted_title = models.CharField(max_length=200, verbose_name="Ishonchli sog'liqni saqlash - Sarlavha",
+                                           default="Ishonchli sog'liqni saqlash provayderi")
+    about_trusted_description = models.TextField(verbose_name="Ishonchli sog'liqni saqlash - Tavsif",
+                                                 default="Bizning klinikamiz eng yuqori sifatli tibbiy xizmatlarni taqdim etishga ixtisoslashgan.")
+    
+    mission_text = models.TextField(verbose_name="Missiya matni",
+                                    default="Har bir shaxsning o'ziga xos ehtiyojlariga moslashtirilgan shaxsiylashtirilgan parvarishni ta'minlash, tibbiy mukammallikni haqiqiy g'amxo'rlik bilan birlashtirgan keng qamrovli, bemor-markazli sog'liqni saqlash xizmatlarini taqdim etish.")
+    vision_text = models.TextField(verbose_name="Viziya matni",
+                                   default="Mintaqamizda innovatsion davolanish, ajoyib natijalar va jamiyatimiz hayotini yaxshilashga sodiqligimiz bilan tan olingan yetakchi sog'liqni saqlash provayderi bo'lish.")
+    promise_text = models.TextField(verbose_name="Va'da matni",
+                                    default="Har bir bemor qulay, qo'llab-quvvatlovchi muhitda eng yuqori sifatli parvarishni oladi, bu yerda ularning sog'lig'i, qadr-qimmati va farovonligi bizning asosiy ustuvorliklarimizdir.")
+    
+    # Images
+    about_main_image = models.ImageField(upload_to='site_settings/', verbose_name="Biz haqimizda - Asosiy rasm", null=True, blank=True)
+    about_image_2 = models.ImageField(upload_to='site_settings/', verbose_name="Biz haqimizda - Kichik rasm 1", null=True, blank=True)
+    about_image_3 = models.ImageField(upload_to='site_settings/', verbose_name="Biz haqimizda - Kichik rasm 2", null=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Sayt sozlamalari"
+        verbose_name_plural = "Sayt sozlamalari"
+    
+    def __str__(self):
+        return self.clinic_name
+    
+    def save(self, *args, **kwargs):
+        # Singleton pattern - faqat bitta yozuv bo'lishi mumkin
+        self.pk = 1
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_settings(cls):
+        """Sozlamalarni olish yoki yaratish"""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings
+
+
+class ServiceFeature(models.Model):
+    """Xizmatning o'ziga xos xususiyatlari"""
+    service = models.ForeignKey(Service, related_name='features', on_delete=models.CASCADE, verbose_name="Xizmat")
+    text = models.CharField(max_length=200, verbose_name="Xususiyat matni")
+    icon = models.CharField(max_length=50, verbose_name="Icon class", default="bi bi-check-circle")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+    
+    class Meta:
+        verbose_name = "Xizmat xususiyati"
+        verbose_name_plural = "Xizmat xususiyatlari"
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.service.name} - {self.text}"
+
+
+class AboutStatistic(models.Model):
+    """Biz haqimizda sahifasi uchun statistikalar"""
+    value = models.IntegerField(verbose_name="Qiymat (raqam)")
+    suffix = models.CharField(max_length=10, verbose_name="Qo'shimcha (%, + va h.k.)", blank=True, default="")
+    title = models.CharField(max_length=100, verbose_name="Sarlavha")
+    description = models.CharField(max_length=200, verbose_name="Qisqa tavsif")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    
+    class Meta:
+        verbose_name = "Biz haqimizda - Statistika"
+        verbose_name_plural = "Biz haqimizda - Statistikalar"
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.value}{self.suffix} - {self.title}"

@@ -187,6 +187,13 @@ class TestimonialsView(TemplateView):
 
 class AboutView(TemplateView):
     template_name = "about.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from dentist.models import AboutStatistic
+        context['about_stats'] = AboutStatistic.objects.filter(is_active=True).order_by('order')
+        context['departments'] = Department.objects.filter(is_active=True).order_by('order')[:6]
+        return context
 
 
 class IndexView(TemplateView):

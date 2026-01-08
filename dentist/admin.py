@@ -5,7 +5,7 @@ from django.db.models import Count
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from dentist.models import Department, Service, DepartmentFeature, WorkingHour, Doctor, ContactMessage
+from dentist.models import Department, Service, DepartmentFeature, WorkingHour, Doctor, ContactMessage, SiteSettings, ServiceFeature, AboutStatistic
 
 
 class FeatureInline(admin.TabularInline):
@@ -22,6 +22,14 @@ class WorkingHourInline(admin.TabularInline):
     extra = 1
     verbose_name = "Ish vaqti"
     verbose_name_plural = "Ish vaqtlari"
+
+
+class ServiceFeatureInline(admin.TabularInline):
+    """Xizmat xususiyatlari inline"""
+    model = ServiceFeature
+    extra = 1
+    verbose_name = "Xususiyat"
+    verbose_name_plural = "Xususiyatlar"
 
 
 @admin.register(Department)
@@ -118,6 +126,7 @@ class ServiceAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'show_image']
     date_hierarchy = 'created_at'
     list_per_page = 20
+    inlines = [ServiceFeatureInline]
 
     fieldsets = (
         ('Asosiy Ma\'lumotlar', {
@@ -384,3 +393,62 @@ class ContactMessageAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} ta xabar o\'qilmagan')
 
     mark_as_unread.short_description = "O'qilmagan"
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    """Sayt sozlamalari admin paneli"""
+    list_display = ['clinic_name', 'phone_primary', 'email', 'patients_count']
+    
+    fieldsets = (
+        ('Klinika Ma\'lumotlari', {
+            'fields': ('clinic_name', 'address', 'email')
+        }),
+        ('Telefon Raqamlari', {
+            'fields': ('phone_primary', 'phone_emergency')
+        }),
+        ('Ish Vaqti', {
+            'fields': ('working_hours_weekday', 'working_hours_weekend')
+        }),
+        ('Statistika', {
+            'fields': ('patients_count', 'years_experience')
+        }),
+        ('Ijtimoiy Tarmoqlar', {
+            'fields': ('facebook_url', 'instagram_url', 'telegram_url'),
+            'classes': ('collapse',)
+        }),
+        ('Biz Haqimizda Sahifasi', {
+            'fields': ('about_title', 'about_intro', 'about_trusted_title', 'about_trusted_description', 'about_main_image', 'about_image_2', 'about_image_3'),
+            'classes': ('collapse',)
+        }),
+        ('Missiya / Viziya / Va\'da', {
+            'fields': ('mission_text', 'vision_text', 'promise_text'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Faqat bitta yozuv bo'lishi mumkin
+        return not SiteSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # O'chirishga ruxsat bermaslik
+        return False
+
+
+@admin.register(ServiceFeature)
+class ServiceFeatureAdmin(admin.ModelAdmin):
+    """Xizmat xususiyatlari"""
+    list_display = ['service', 'text', 'icon', 'order']
+    list_filter = ['service']
+    search_fields = ['text', 'service__name']
+    list_editable = ['order']
+
+
+@admin.register(AboutStatistic)
+class AboutStatisticAdmin(admin.ModelAdmin):
+    """Biz haqimizda statistikalari"""
+    list_display = ['value', 'suffix', 'title', 'description', 'order', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['title', 'description']
+    list_editable = ['order', 'is_active']
