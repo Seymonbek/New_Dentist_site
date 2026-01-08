@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="heading">
+        <div class="container">
+          <div class="row d-flex justify-content-center text-center">
+            <div class="col-lg-8">
+              <h1 class="heading-title">Bizning Shifokorlar</h1>
+              <p class="mb-0">
+                Yuqori malakali va tajribali tish shifokorlari - sizning sog'ligingiz uchun
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <nav class="breadcrumbs">
+        <div class="container">
+          <ol>
+            <li><a href="{% url 'index' %}">Bosh sahifa</a></li>
+            <li class="current">Shifokorlar</li>
+          </ol>
+        </div>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <!-- Doctors Section -->
+    <section id="doctors" class="doctors section">
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <!-- Filterable Doctor Directory -->
+        <div class="doctor-directory mb-5">
+          <div class="directory-bar p-3 p-md-4 rounded-3">
+            <form method="get" action="{% url 'doctors' %}">
+              <div class="row g-3 align-items-end">
+
+                <div class="col-lg-5">
+                  <label for="doctor-search" class="form-label mb-1">Shifokor qidirish</label>
+                  <div class="position-relative">
+                    <i class="bi bi-search search-icon"></i>
+                    <input
+                      id="doctor-search"
+                      name="search"
+                      type="text"
+                      class="form-control search-input"
+                      placeholder="Ism, familiya yoki mutaxassislik kiriting"
+                      value="{{ request.GET.search }}">
+                  </div>
+                </div>
+
+                <div class="col-lg-4">
+                  <label class="form-label mb-1">Bo'lim bo'yicha saralash</label>
+                  <select name="department" class="form-select" id="department-filter">
+                    <option value="">Barcha bo'limlar</option>
+                    {% for dept in departments %}
+                      <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="col-lg-3 d-grid">
+                  <button type="submit" class="btn btn-appointment">Qidirish</button>
+                </div>
+
+              </div>
+            </form>
+          </div>
+
+          <div class="isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
+            <ul class="directory-filters isotope-filters" data-aos="fade-up" data-aos-delay="200">
+              <li data-filter="*" class="filter-active">Barchasi</li>
+              {% for dept in departments %}
+                <li data-filter=".filter-{{ dept.slug }}">{{ dept.name }}</li>
+              {% endfor %}
+            </ul><!-- End Directory Filters -->
+
+            <div class="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="300">
+              {% for doctor in doctors %}
+              <div class="col-lg-3 col-md-6 doctor-item isotope-item filter-{{ doctor.department.slug }}">
+                <article class="doctor-card h-100">
+                  <figure class="doctor-media">
+                    {% if doctor.photo %}
+                      <img src="{{ doctor.photo.url }}" class="img-fluid" alt="{{ doctor.get_full_name }}" loading="lazy">
+                    {% else %}
+                      <img src="{% static 'assets/img/doctors/default-doctor.jpg' %}" class="img-fluid" alt="{{ doctor.get_full_name }}" loading="lazy">
+                    {% endif %}
+                    {% if doctor.is_futured %}
+                      <span class="tag">Tajribali shifokor</span>
+                    {% endif %}
+                  </figure>
+                  <div class="doctor-content">
+                    <h3 class="doctor-name">{{ doctor.get_full_name }}</h3>
+                    <p class="doctor-title">{{ doctor.specialization }} • {{ doctor.degree|default:"Mutaxassis" }}</p>
+                    <p class="doctor-desc">{{ doctor.bio|truncatewords:10 }}</p>
+                    <div class="doctor-meta mb-2">
+                      <span class="badge dept">{{ doctor.department.name }}</span>
+                      <span class="badge">⭐ {{ doctor.rating }}</span>
+                      <span class="badge">{{ doctor.experience_years }} yil</span>
+                    </div>
+                    <div class="doctor-actions">
+                      <a href="{% url 'appointment' %}" class="btn btn-sm btn-appointment">Qabulga yozilish</a>
+                      <a href="{% url 'doctor_detail' doctor.slug %}" class="btn btn-sm btn-soft">Profil</a>
+                    </div>
+                  </div>
+                </article>
+              </div><!-- End Directory Item -->
+              {% empty %}
+              <div class="col-12 text-center">
+                <p>Hozircha shifokorlar mavjud emas yoki qidiruv bo'yicha natija topilmadi.</p>
+              </div>
+              {% endfor %}
+            </div><!-- End Directory Items Container -->
+          </div>
+        </div><!-- End Filterable Doctor Directory -->
+
+        <!-- Featured Doctors Profiles -->
+        {% for doc in featured_doctors %}
+        <div class="single-profile mt-5">
+          <div class="row align-items-center g-4">
+            <div class="col-lg-5" data-aos="fade-right" data-aos-delay="150">
+              <div class="profile-media">
+                {% if doc.photo %}
+                  <img src="{{ doc.photo.url }}" class="img-fluid" alt="Dr. {{ doc.get_full_name }}">
+                {% else %}
+                  <img src="{% static 'assets/img/doctors/default-doctor.jpg' %}" class="img-fluid" alt="Dr. {{ doc.get_full_name }}">
+                {% endif %}
+                <div class="availability">
+                  <i class="bi bi-circle-fill me-1 {% if doc.is_available %}text-success{% else %}text-danger{% endif %}"></i>
+                  {% if doc.is_available %}Hozir qabulda{% else %}Vaqtincha band{% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-7" data-aos="fade-left" data-aos-delay="200">
+              <div class="profile-content">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                  {% if doc.is_futured %}
+                    <span class="badge role">Bosh shifokor</span>
+                  {% endif %}
+                  <span class="badge years">{{ doc.experience_years }}+ Yillik tajriba</span>
+                  <span class="badge cert">Reyting: {{ doc.rating }} ⭐</span>
+                </div>
+                <h3 class="name mb-1">Dr. {{ doc.get_full_name }}</h3>
+                <p class="title mb-3">{{ doc.specialization }} • {{ doc.degree|default:"Mutaxassis" }}</p>
+                <p class="bio mb-3">{{ doc.bio|truncatewords:50 }}</p>
+                <ul class="list-unstyled highlights mb-4">
+                  {% if doc.education %}
+                    <li><i class="bi bi-mortarboard"></i> Ta'lim: {{ doc.education|truncatewords:15 }}</li>
+                  {% endif %}
+                  {% if doc.achievements %}
+                    <li><i class="bi bi-award"></i> Yutuqlar: {{ doc.achievements|truncatewords:15 }}</li>
+                  {% endif %}
+                  <li><i class="bi bi-people"></i> Jami bemorlar: {{ doc.patients_count }}+</li>
+                  <li><i class="bi bi-calendar-check"></i> Ish kunlari: {{ doc.get_working_days }}</li>
+                </ul>
+                <div class="d-flex flex-wrap gap-2">
+                  <a href="{% url 'appointment' %}" class="btn btn-appointment">
+                    <i class="bi bi-calendar2-check me-1"></i>Qabulga yozilish
+                  </a>
+                  <a href="tel:{{ doc.phone }}" class="btn btn-soft">
+                    <i class="bi bi-telephone me-1"></i>Qo'ng'iroq qilish
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- End Single Doctor Profile -->
+        {% endfor %}
+
+        <!-- Minimal Card / Compact View -->
+        <div class="compact-view mt-5">
+          <h3 class="text-center mb-4">Barcha Mutaxassislarimiz</h3>
+          <div class="row g-3">
+            {% for doc in doctors %}
+            <div class="col-6 col-md-4 col-lg-2" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:50 }}">
+              <div class="minimal-card text-center">
+                {% if doc.photo %}
+                  <img src="{{ doc.photo.url }}" alt="Dr. {{ doc.get_full_name }}" class="avatar img-fluid" loading="lazy">
+                {% else %}
+                  <img src="{% static 'assets/img/doctors/default-doctor.jpg' %}" alt="Dr. {{ doc.get_full_name }}" class="avatar img-fluid" loading="lazy">
+                {% endif %}
+                <div class="info">
+                  <h4 class="mb-0">Dr. {{ doc.first_name }}</h4>
+                  <small>{{ doc.department.name }}</small>
+                  <small class="d-block">⭐ {{ doc.rating }}</small>
+                </div>
+              </div>
+            </div><!-- End Minimal Item -->
+            {% endfor %}
+          </div>
+        </div><!-- End Minimal / Compact -->
+
+        <!-- Doctor Profile with Tabs -->
+        {% for doc in doctors|slice:":3" %}
+        <div class="profile-tabs mt-5">
+          <div class="row g-4">
+            <div class="col-lg-4" data-aos="fade-right" data-aos-delay="150">
+              <div class="tab-profile-card">
+                {% if doc.photo %}
+                  <img src="{{ doc.photo.url }}" class="img-fluid rounded-3" alt="Dr. {{ doc.get_full_name }}" loading="lazy">
+                {% else %}
+                  <img src="{% static 'assets/img/doctors/default-doctor.jpg' %}" class="img-fluid rounded-3" alt="Dr. {{ doc.get_full_name }}" loading="lazy">
+                {% endif %}
+                <div class="pt-3">
+                  <h3 class="mb-1">Dr. {{ doc.get_full_name }}</h3>
+                  <p class="mb-2">{{ doc.specialization }} • {{ doc.degree|default:"Mutaxassis" }}</p>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge years">Tajriba: {{ doc.experience_years }} yil</span>
+                    <span class="badge">⭐ {{ doc.rating }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-8" data-aos="fade-left" data-aos-delay="200">
+              <ul class="nav nav-pills mb-3" id="pills-tab-{{ doc.id }}" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#bio-{{ doc.id }}" type="button">Biografiya</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" data-bs-toggle="pill" data-bs-target="#schedule-{{ doc.id }}" type="button">Ish vaqti</button>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane fade show active" id="bio-{{ doc.id }}">
+                  <p>{{ doc.bio }}</p>
+                  {% if doc.education %}
+                    <p><strong>Ta'lim:</strong> {{ doc.education }}</p>
+                  {% endif %}
+                  {% if doc.achievements %}
+                    <p><strong>Yutuqlar:</strong> {{ doc.achievements }}</p>
+                  {% endif %}
+                </div>
+
+                <div class="tab-pane fade" id="schedule-{{ doc.id }}">
+                  <div class="schedule-grid">
+                    <div class="row g-2">
+                      <div class="col-12">
+                        <div class="slot p-2 border rounded mb-2">
+                          <i class="bi bi-calendar-check me-2 text-primary"></i>
+                          <strong>Ish kunlari:</strong> {{ doc.get_working_days }}
+                        </div>
+                        <div class="slot p-2 border rounded mb-2">
+                          <i class="bi bi-clock me-2 text-primary"></i>
+                          <strong>Ish soatlari:</strong> {{ doc.get_working_hours }}
+                        </div>
+                        <div class="slot p-2 border rounded">
+                          <i class="bi bi-hourglass me-2 text-primary"></i>
+                          <strong>Konsultatsiya davomiyligi:</strong> {{ doc.consultation_duration }} daqiqa
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-3">
+                    <a href="{% url 'appointment' %}" class="btn btn-appointment">
+                      <i class="bi bi-calendar-event me-1"></i>Navbat olish
+                    </a>
+                    <a href="tel:{{ doc.phone }}" class="btn btn-soft ms-2">
+                      <i class="bi bi-telephone me-1"></i>Qo'ng'iroq
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- End Doctor Profile with Tabs -->
+        {% endfor %}
+
+      </div>
+    </section><!-- /Doctors Section -->
+
+{% endblock %}
